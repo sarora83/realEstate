@@ -1,15 +1,18 @@
 import React, { useState } from 'react'
 import { Link , useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import {signInStart, signInSuccess, signInFailure, } from '../redux/user/userSlice';
 
 export default function SignIn() {
   //getting data from sign up form
   const [formData, setFormData] = useState({});
+//We removed the lines below when we implemented Redux toolkit and added new line below
+  //const [error, setError] = useState(null);
+  //const [loading, setLoading] = useState(false);
+const { loading, error } = useSelector((state) => state.user);
 
-  const [error, setError] = useState(null);
-
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  const dispatch = useDispatch();
   //handle change in form data
   const handleChange = (e) => {
     setFormData (
@@ -22,9 +25,10 @@ export default function SignIn() {
 
 //Handle submit button
   const  handleSubmit = async (e) =>  {
-    try {
     e.preventDefault();
-    setLoading(true)
+    try {
+    
+      dispatch(signInStart());
     const res = await fetch('/api/auth/signin', 
     {
       method: 'POST',
@@ -36,19 +40,15 @@ export default function SignIn() {
     );
     const data = await res.json();
     if (data.success === false) {
-      setError(data.message)
-      setLoading(false);
-
+      dispatch(signInFailure(data.message));
       return;
     }
-    setLoading(false);
-    setError(null);
+    dispatch(signInSuccess(data));
     navigate('/')
     console.log(data);
   }
   catch(error){
-    setLoading(false);
-    setError(data.message)
+    dispatch(signInFailure(error.message));
   }
   };
 
